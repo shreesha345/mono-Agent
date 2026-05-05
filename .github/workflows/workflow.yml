@@ -9,6 +9,9 @@ jobs:
   build-n-publish:
     name: Build and publish Python 🐍 distribution 📦 to PyPI
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/mono-agent
     permissions:
       id-token: write # Required for trusted publishing
       contents: read
