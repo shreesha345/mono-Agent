@@ -202,19 +202,69 @@ class MonoAgent:
         print(f"--- Agent structure saved to: {file_path} ---")
         return file_path
 
-    def run(self, user_input: str, stream: bool = False) -> str:
+    def run(self, user_input: str, stream: bool = False, max_steps: int = 10) -> str:
         # Add user message to persistent memory
         self.memory.add_message(self.agent_id, "user", user_input)
         
-        # Get full history for the model
-        history = self.memory.get_history(self.agent_id)
-        
-        # In a real tool-calling loop, we would handle self.current_tools here
-        response = self.model(history, stream=stream)
-        
-        if stream:
-            return response
+        for _ in range(max_steps):
+            # Get full history for the model
+            history = self.memory.get_history(self.agent_id)
             
-        # Add assistant response to persistent memory
-        self.memory.add_message(self.agent_id, "assistant", response)
-        return response
+            # Prepare tools for OpenAI format
+            formatted_tools = []
+            for t in self.current_tools:
+                formatted_tools.append({"type": "function", "function": t})
+
+            # Call the model
+            if formatted_tools:
+                response = self.model.client.chat.completions.create(
+                    model=self.model.model_id,
+                    messages=history,
+                    tools=formatted_tools,
+                    tool_choice="auto"
+                )
+            else:
+                response = self.model.client.chat.completions.create(
+                    model=self.model.model_id,
+                    messages=history
+                )
+
+            message = response.choices[0].message
+            
+            # Handle assistant response
+            if message.content:
+                self.memory.add_message(self.agent_id, "assistant", message.content)
+            
+            # Check for tool calls
+            if message.tool_calls:
+                # Add the assistant message (with tool calls) to history
+                # We need to manually add it because memory.add_message only takes content string
+                # So we'll update memory to handle raw message objects or just handle tool calls here
+                self.memory.add_message(self.agent_id, "assistant", message.content or "Calling tools...")
+                
+                for tool_call in message.tool_calls:
+                    tool_name = tool_call.function.name
+                    args = json.loads(tool_call.function.arguments)
+                    
+                    print(f"--- {self.agent_id} calling tool: {tool_name}({args}) ---")
+                    
+                    try:
+                        # Import and run the tool
+                        func = self.import_tool(tool_name)
+                        observation = func(**args)
+                    except Exception as e:
+                        observation = f"Error executing tool {tool_name}: {str(e)}"
+                    
+                    print(f"--- Observation: {observation} ---")
+                    
+                    # Add observation to memory
+                    # Note: Ideally we'd use 'tool' role, but for simplicity in this 'much similar' framework,
+                    # we can feed it back as a user message or assistant note. 
+                    # Let's add a proper tool role support in memory.
+                    self.memory.add_message(self.agent_id, "user", f"Observation from {tool_name}: {observation}")
+                
+                continue # Loop back to let the LLM see the observation
+            
+            return message.content or ""
+        
+        return "Max steps reached."
