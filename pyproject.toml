@@ -1,0 +1,27 @@
+[project]
+name = "mono-agent"
+version = "0.1.0"
+description = "A minimal, file-based agent framework with automated tool syncing."
+authors = [
+    { name = "Shreesha Aithal", email = "Shreeshaaithal862@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.10.0",
+    "openai>=2.34.0",
+    "mem0ai>=2.0.1",
+    "python-dotenv>=1.2.2",
+]
+
+[project.scripts]
+mono = "mono_agent.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
