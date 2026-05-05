@@ -13,36 +13,47 @@ A minimal, file-based agent framework inspired by smolagents and LangGraph, opti
 
 ## Installation
 
+Install the framework using your preferred package manager:
+
 ```bash
-uv init
-uv add pydantic openai mem0ai
-# Or just install this package
-uv sync
+# Using uv (Recommended)
+uv add mono-agent
+
+# Using pip
+pip install mono-agent
 ```
 
 ## Quick Start
 
+Once installed, you can set up a new project in seconds using the CLI:
+
 1. **Scaffold your project**:
+   This command creates the `Agents/` and `Tools/` folders, a sample agent, and a `main.py` entry point. It also helps you configure your LLM provider.
    ```bash
-   uv run mono create
+   mono create
    ```
 
-2. **Run the example**:
+2. **Test your setup**:
+   Perform a dynamic dry run to ensure all files and configurations are correct.
    ```bash
-   # Make sure your OPENAI_API_KEY is set
-   uv run main.py
+   mono test
    ```
 
-## Creating an Agent
+3. **Run your agent**:
+   ```bash
+   python main.py
+   ```
 
-1. Create a tool in `Tools/my_tool.py`:
+## Creating a Specialist Agent
+
+1. **Create a tool** in `Tools/my_tool.py`:
    ```python
    def run(query: str) -> str:
        """Does something cool."""
        return f"Result for {query}"
    ```
 
-2. Use the framework to generate the Agent Markdown:
+2. **Generate the Agent file**:
    ```python
    from mono_agent import MonoAgent
    agent = MonoAgent()
@@ -53,8 +64,12 @@ uv sync
    )
    ```
 
-3. Load and run:
+3. **Load and Run**:
    ```python
    agent.load_agent("MySpecialist")
    agent.run("Do the cool thing.")
    ```
+
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.
