@@ -32,8 +32,5 @@ jobs:
       
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1
-      # Note: This step uses Trusted Publishing (OIDC).
-      # To use this, you must configure your PyPI project to trust this GitHub repository.
-      # Alternatively, you can use a PyPI API token by setting the API_TOKEN secret.
-      # with:
-      #   password: ${{ secrets.PYPI_API_TOKEN }}
+      with:
+        password: ${{ secrets.PYPI_API_TOKEN }}
